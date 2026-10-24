@@ -15,12 +15,16 @@ const generateRefreshToken = (user) =>
 const REFRESH_COOKIE_NAME = 'refreshToken';
 
 const isProd = process.env.NODE_ENV === 'production';
+// Separate frontend/backend hosts (e.g. two Render services) need SameSite=None
+const crossOrigin =
+  process.env.CROSS_ORIGIN_COOKIES === 'true' ||
+  process.env.CROSS_ORIGIN_COOKIES === '1';
 
 /** Cookie options for refresh token (must match on set + clear). */
 const refreshCookieOptions = {
   httpOnly: true,
-  secure: isProd, // HTTPS only in production (Cloudflare / tunnel)
-  sameSite: isProd ? 'lax' : 'lax', // works with same-site app on stockhold.dpdns.org
+  secure: isProd, // required for SameSite=None
+  sameSite: crossOrigin && isProd ? 'none' : 'lax',
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   path: '/api/auth',
   ...(process.env.COOKIE_DOMAIN ? { domain: process.env.COOKIE_DOMAIN } : {}),
@@ -191,7 +195,7 @@ export const logout = asyncHandler(async (req, res) => {
   res.clearCookie(REFRESH_COOKIE_NAME, {
     path: '/api/auth',
     secure: isProd,
-    sameSite: isProd ? 'lax' : 'lax',
+    sameSite: crossOrigin && isProd ? 'none' : 'lax',
     ...(process.env.COOKIE_DOMAIN ? { domain: process.env.COOKIE_DOMAIN } : {}),
   });
   res.json({ message: 'Logged out successfully' });

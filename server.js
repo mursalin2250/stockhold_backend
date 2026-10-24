@@ -60,7 +60,6 @@ const envOrigins = (process.env.CORS_ORIGIN || '')
   .split(',')
   .map((origin) => origin.trim())
   .filter(Boolean);
-// Render injects RENDER_EXTERNAL_URL (e.g. https://stockhold.onrender.com)
 const renderOrigin = (process.env.RENDER_EXTERNAL_URL || process.env.APP_URL || '').replace(/\/$/, '');
 const allowedOrigins = [
   ...new Set([...builtinOrigins, ...envOrigins, ...(renderOrigin ? [renderOrigin] : [])]),
